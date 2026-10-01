@@ -178,7 +178,7 @@ module JSONSchemer
       end
     end
 
-    def insert_property_defaults(context)
+    def property_defaults
       instance_locations = {}
       instance_locations.compare_by_identity
 
@@ -197,17 +197,22 @@ module JSONSchemer
             keyword_location = Location.join(Location.join(result.keyword_location, property), default.keyword)
             default_result = default.validate(nil, instance_location, keyword_location, nil)
             instance_locations[result.instance_location] ||= {}
-            instance_locations[result.instance_location][property] ||= []
-            instance_locations[result.instance_location][property] << [default_result, valid]
+            entry = (instance_locations[result.instance_location][property] ||= { :results => [], :keyword => result.source })
+            entry.fetch(:results) << [default_result, valid]
           end
         end
       end
 
+      instance_locations
+    end
+
+    def insert_property_defaults(context)
       inserted = false
 
-      instance_locations.each do |instance_location, properties|
+      property_defaults.each do |instance_location, properties|
         original_instance = context.original_instance(instance_location)
-        properties.each do |property, results_with_tree_validity|
+        properties.each do |property, entry|
+          results_with_tree_validity = entry.fetch(:results)
           property_inserted = yield(original_instance, property, results_with_tree_validity)
           inserted ||= (property_inserted != false)
         end

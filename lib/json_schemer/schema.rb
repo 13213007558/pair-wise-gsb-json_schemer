@@ -117,6 +117,86 @@ module JSONSchemer
       output
     end
 
+    def plan_defaults(instance)
+      working = deep_stringify_keys(instance)
+      patches = []
+      conflicts = {}
+      applied = {}
+
+      loop do
+        context = Context.new(working, [], nil, false, @configuration.access_mode)
+        result = validate_instance(deep_stringify_keys(working), Location.root, root_keyword_location, context)
+        round = []
+
+        result.property_defaults.each do |instance_location, properties|
+          original_instance = context.original_instance(instance_location)
+          properties.each do |property, entry|
+            results_with_tree_validity = entry.fetch(:results)
+            filtered = results_with_tree_validity.size == 1 ? results_with_tree_validity : results_with_tree_validity.select { |_default_result, tree_valid| tree_valid }
+            annotations = filtered.to_set { |default_result, _tree_valid| default_result.annotation }
+            next if annotations.empty?
+            resolved_instance_location = Location.resolve(instance_location)
+
+            if annotations.size == 1
+              source_key = [entry.fetch(:keyword).absolute_keyword_location, property]
+              next if ancestor_instance_locations(instance_location).any? { |location| applied.fetch(location, nil)&.include?(source_key) }
+
+              default_result = filtered.first.first
+              round << [original_instance, property, deep_dup(annotations.first)]
+              patches << {
+                'instance_location' => resolved_instance_location,
+                'property' => property,
+                'value' => deep_dup(annotations.first),
+                'keyword_location' => Location.resolve(default_result.keyword_location),
+                'absolute_keyword_location' => default_result.source.absolute_keyword_location
+              }
+              (applied[resolved_instance_location] ||= []) << source_key
+            else
+              key = [resolved_instance_location, property]
+              conflicts[key] ||= {
+                'instance_location' => resolved_instance_location,
+                'property' => property,
+                'values' => annotations.map { |annotation| deep_dup(annotation) },
+                'keyword_locations' => filtered.map { |default_result, _tree_valid| Location.resolve(default_result.keyword_location) }.uniq,
+                'absolute_keyword_locations' => filtered.map { |default_result, _tree_valid| default_result.source.absolute_keyword_location }.uniq
+              }
+            end
+          end
+        end
+
+        break if round.empty?
+
+        round.each { |original_instance, property, value| original_instance[property] = value }
+      end
+
+      DefaultsPlan.new(self, patches, conflicts.values)
+    end
+
+    def apply_defaults_plan(instance, plan)
+      raise StaleDefaultsPlan, 'instance no longer satisfies defaults plan preconditions' unless plan_defaults(instance).patches == plan.patches
+      return instance if plan.empty?
+
+      working = deep_dup(instance)
+
+      plan.patches.each do |patch|
+        target = Hana::Pointer.parse(patch.fetch('instance_location')).reduce(working) do |obj, token|
+          if obj.is_a?(Array)
+            obj.fetch(token.to_i)
+          elsif !obj.key?(token) && obj.key?(token.to_sym)
+            obj.fetch(token.to_sym)
+          else
+            obj.fetch(token)
+          end
+        end
+        target[patch.fetch('property')] = deep_dup(patch.fetch('value'))
+      end
+
+      raise InvalidDefaultsPlan, 'instance is invalid after applying defaults plan' unless valid?(working)
+
+      instance.replace(working)
+      instance
+    end
+
     def valid_schema?(**options)
       meta_schema.valid?(value, **options)
     end
@@ -416,6 +496,25 @@ module JSONSchemer
         @configuration.property_default_resolver
       else
         insert_property_defaults == :symbol ? SYMBOL_PROPERTY_DEFAULT_RESOLVER : DEFAULT_PROPERTY_DEFAULT_RESOLVER
+      end
+    end
+
+    def ancestor_instance_locations(location)
+      locations = []
+      while (location = location[:parent])
+        locations << Location.resolve(location)
+      end
+      locations
+    end
+
+    def deep_dup(value)
+      case value
+      when Hash
+        value.each_with_object({}) { |(key, child), out| out[key] = deep_dup(child) }
+      when Array
+        value.map { |child| deep_dup(child) }
+      else
+        value.dup
       end
     end
 

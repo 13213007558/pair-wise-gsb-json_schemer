@@ -26,6 +26,7 @@ require 'json_schemer/cached_resolver'
 require 'json_schemer/ecma_regexp'
 require 'json_schemer/location'
 require 'json_schemer/result'
+require 'json_schemer/defaults_plan'
 require 'json_schemer/output'
 require 'json_schemer/keyword'
 require 'json_schemer/draft202012/meta'
@@ -76,6 +77,8 @@ module JSONSchemer
   class InvalidRegexpResolution < StandardError; end
   class InvalidFileURI < StandardError; end
   class InvalidEcmaRegexp < StandardError; end
+  class StaleDefaultsPlan < StandardError; end
+  class InvalidDefaultsPlan < StandardError; end
 
   VOCABULARIES = {
     'https://json-schema.org/draft/2020-12/vocab/core' => Draft202012::Vocab::CORE,

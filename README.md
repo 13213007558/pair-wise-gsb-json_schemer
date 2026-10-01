@@ -69,6 +69,52 @@ JSONSchemer.schema(
 data
 # => {"foo"=>"bar"}
 
+# planning default property values
+
+# `plan_defaults` computes which defaults would be inserted without modifying
+# the instance, so the changes can be reviewed (or confirmed) before applying
+# them. Each patch includes the instance location, the property, the value and
+# the schema location the default comes from. When multiple valid branches
+# (e.g. `allOf`/`anyOf` subschemas) provide defaults for the same property, the
+# default is only planned if all branches agree; disagreements are reported as
+# conflicts. Planning nested objects, `$ref`s and combinator branches is
+# supported, and planning an already-completed instance returns an empty plan.
+
+schemer = JSONSchemer.schema({
+  'properties' => {
+    'foo' => {
+      'default' => 'bar'
+    }
+  }
+})
+
+data = {}
+plan = schemer.plan_defaults(data)
+plan.patches
+# => [{"instance_location"=>"",
+#      "property"=>"foo",
+#      "value"=>"bar",
+#      "keyword_location"=>"/properties/foo/default",
+#      "absolute_keyword_location"=>"json-schemer://schema#/properties/foo/default"}]
+plan.conflicts
+# => []
+plan.empty?
+# => false
+data
+# => {}
+
+# applying a plan is atomic: the instance is checked against the plan
+# preconditions first (`StaleDefaultsPlan` is raised if the instance changed
+# since planning) and re-validated afterwards (`InvalidDefaultsPlan` is raised
+# and the instance is left untouched if the result is invalid)
+
+schemer.apply_defaults_plan(data, plan)
+data
+# => {"foo"=>"bar"}
+
+schemer.plan_defaults(data).empty?
+# => true
+
 # schema files
 
 require 'pathname'
