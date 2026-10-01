@@ -98,4 +98,17 @@ class RegexTest < Minitest::Test
     schema = JSONSchemer.schema({ 'format' => 'regex' })
     assert(schema.valid?('\0'))
   end
+
+  def test_ecma_2024_u_regexp_resolver
+    schema = JSONSchemer.schema({ 'pattern' => '\u{1F600}+' }, :regexp_resolver => 'ecma_2024_u')
+    assert(schema.valid?("\u{1F600}"))
+    refute(schema.valid?('abc'))
+
+    assert_raises(JSONSchemer::EcmaUnicodePattern::ParseError) do
+      JSONSchemer.schema({ 'pattern' => '\a' }, :regexp_resolver => 'ecma_2024_u')
+    end
+    assert_raises(JSONSchemer::UnsupportedEcmaUnicodePattern) do
+      JSONSchemer.schema({ 'pattern' => '(?=a)' }, :regexp_resolver => 'ecma_2024_u')
+    end
+  end
 end

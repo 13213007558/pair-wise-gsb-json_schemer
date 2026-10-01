@@ -1,0 +1,1576 @@
+{
+  "source": "https://github.com/tc39/test262",
+  "revision": "es2024-candidate",
+  "description": "Fixed subset of ECMAScript 2024 u-mode regular expression vectors for EcmaUnicodePattern",
+  "vectors": [
+    {
+      "pattern": "abc",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "abc",
+          "match": true
+        },
+        {
+          "input": "xabcx",
+          "match": true
+        },
+        {
+          "input": "ac",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "literals/basic-identity",
+        "source": "test/built-ins/RegExp/S15.10.2.12_A1_T1.js"
+      }
+    },
+    {
+      "pattern": "^abc$",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "abc",
+          "match": true
+        },
+        {
+          "input": "xabc",
+          "match": false
+        },
+        {
+          "input": "abcd",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "assertions/basic-anchors",
+        "source": "test/built-ins/RegExp/assertions/S15.10.2.6_A1_T1.js"
+      }
+    },
+    {
+      "pattern": "a.c",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "abc",
+          "match": true
+        },
+        {
+          "input": "a\nc",
+          "match": false
+        },
+        {
+          "input": "ac",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "dot/no-line-terminator",
+        "source": "test/built-ins/RegExp/dot/prod-Atom_Dot.js"
+      }
+    },
+    {
+      "pattern": "a{2}",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "aa",
+          "match": true
+        },
+        {
+          "input": "a",
+          "match": false
+        },
+        {
+          "input": "aaa",
+          "match": true
+        }
+      ],
+      "test262": {
+        "name": "quantifiers/exact",
+        "source": "test/built-ins/RegExp/quantifiers/S15.10.2.5_A1_T1.js"
+      }
+    },
+    {
+      "pattern": "a{2,}",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "a",
+          "match": false
+        },
+        {
+          "input": "aa",
+          "match": true
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "a{2,3}",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "a",
+          "match": false
+        },
+        {
+          "input": "aa",
+          "match": true
+        },
+        {
+          "input": "aaaa",
+          "match": true
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "a*",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "",
+          "match": true
+        },
+        {
+          "input": "aaa",
+          "match": true
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "a+?",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "aaa",
+          "match": true
+        },
+        {
+          "input": "",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "a??",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "aaa",
+          "match": true
+        },
+        {
+          "input": "",
+          "match": true
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "(?:ab)+",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "abab",
+          "match": true
+        },
+        {
+          "input": "",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "(?<year>\\d{4})",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "2024",
+          "match": true
+        },
+        {
+          "input": "abc",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "named-capture-groups/basic",
+        "source": "test/built-ins/RegExp/named-capture-groups/named-groups.js"
+      }
+    },
+    {
+      "pattern": "(?<word>foo)bar\\k<word>",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "foobarfoo",
+          "match": true
+        },
+        {
+          "input": "foobar",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "named-capture-groups/backreference",
+        "source": "test/built-ins/RegExp/named-capture-groups/named-groups-backreference.js"
+      }
+    },
+    {
+      "pattern": "foo|bar",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "foo",
+          "match": true
+        },
+        {
+          "input": "bar",
+          "match": true
+        },
+        {
+          "input": "baz",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "[a-z]+",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "abc",
+          "match": true
+        },
+        {
+          "input": "ABC",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "[^a-z]+",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "ABC",
+          "match": true
+        },
+        {
+          "input": "abc",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "[\\d]",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "5",
+          "match": true
+        },
+        {
+          "input": "a",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "character-class-escape/digit-in-class",
+        "source": "test/built-ins/RegExp/character-class-escape/S15.10.2.12_A1_T1.js"
+      }
+    },
+    {
+      "pattern": "[\\w]",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "a",
+          "match": true
+        },
+        {
+          "input": "_",
+          "match": true
+        },
+        {
+          "input": "!",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "[\\W]",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "!",
+          "match": true
+        },
+        {
+          "input": "a",
+          "match": false
+        },
+        {
+          "input": "9",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "[\\s]",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": " ",
+          "match": true
+        },
+        {
+          "input": "a",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "[\\S]",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "x",
+          "match": true
+        },
+        {
+          "input": " ",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "[a\\db]",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "a",
+          "match": true
+        },
+        {
+          "input": "5",
+          "match": true
+        },
+        {
+          "input": "c",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "[a-z0-9]+",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "a9",
+          "match": true
+        },
+        {
+          "input": "-",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "[\\u0041-\\u0043]+",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "ABC",
+          "match": true
+        },
+        {
+          "input": "D",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "unicode-escape/range",
+        "source": "test/built-ins/RegExp/unicode-escape/range.js"
+      }
+    },
+    {
+      "pattern": "\\u0041",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "A",
+          "match": true
+        },
+        {
+          "input": "B",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "unicode-escape/basic",
+        "source": "test/built-ins/RegExp/unicode-escape/basic.js"
+      }
+    },
+    {
+      "pattern": "\\u{41}",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "A",
+          "match": true
+        },
+        {
+          "input": "B",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "unicode-escape/brace",
+        "source": "test/built-ins/RegExp/unicode-escape/braced-astral.js"
+      }
+    },
+    {
+      "pattern": "\\u{1F600}",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "😀",
+          "match": true
+        },
+        {
+          "input": "x",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "unicode-escape/astral",
+        "source": "test/built-ins/RegExp/unicode-escape/braced-astral.js"
+      }
+    },
+    {
+      "pattern": "\\uD83D\\uDE00",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "😀",
+          "match": true
+        },
+        {
+          "input": "x",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "unicode-escape/surrogate-pair",
+        "source": "test/built-ins/RegExp/unicode-escape/surrogate-pairs.js"
+      }
+    },
+    {
+      "pattern": "[\\u{1F600}-\\u{1F602}]",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "😁",
+          "match": true
+        },
+        {
+          "input": "😃",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "unicode-escape/astral-range",
+        "source": "test/built-ins/RegExp/unicode-escape/braced-astral.js"
+      }
+    },
+    {
+      "pattern": "\\u{1F600}{2}",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "😀😀",
+          "match": true
+        },
+        {
+          "input": "😀",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "\\x41",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "A",
+          "match": true
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "\\cA",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "\u0001",
+          "match": true
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "\\cZ",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "\u001a",
+          "match": true
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "\\0",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "\u0000",
+          "match": true
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "\\/",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "/",
+          "match": true
+        },
+        {
+          "input": "x",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "[\\-]",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "-",
+          "match": true
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "[\\/]",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "/",
+          "match": true
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "[-a]",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "-",
+          "match": true
+        },
+        {
+          "input": "a",
+          "match": true
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "[a-]",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "-",
+          "match": true
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "\\p{L}+",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "abc",
+          "match": true
+        },
+        {
+          "input": "日本",
+          "match": true
+        },
+        {
+          "input": "123",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "unicode-property-escapes/general-category",
+        "source": "test/built-ins/RegExp/unicode-property-escapes/general-category.js"
+      }
+    },
+    {
+      "pattern": "\\p{Letter}",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "a",
+          "match": true
+        },
+        {
+          "input": "1",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "unicode-property-escapes/long-name",
+        "source": "test/built-ins/RegExp/unicode-property-escapes/general-category.js"
+      }
+    },
+    {
+      "pattern": "\\p{gc=L}",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "a",
+          "match": true
+        },
+        {
+          "input": "1",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "\\p{General_Category=Uppercase_Letter}",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "A",
+          "match": true
+        },
+        {
+          "input": "a",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "\\p{Lu}",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "A",
+          "match": true
+        },
+        {
+          "input": "a",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "\\P{L}",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "1",
+          "match": true
+        },
+        {
+          "input": "a",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "[\\p{L}\\p{N}]+",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "a1",
+          "match": true
+        },
+        {
+          "input": "-",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "\\p{sc=Hira}",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "あ",
+          "match": true
+        },
+        {
+          "input": "a",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "unicode-property-escapes/script",
+        "source": "test/built-ins/RegExp/unicode-property-escapes/script-extension.js"
+      }
+    },
+    {
+      "pattern": "\\p{Script=Hiragana}",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "あ",
+          "match": true
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "\\p{Emoji}",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "😀",
+          "match": true
+        },
+        {
+          "input": "a",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "unicode-property-escapes/emoji",
+        "source": "test/built-ins/RegExp/unicode-property-escapes/binary-property-emoji.js"
+      }
+    },
+    {
+      "pattern": "\\p{White_Space}",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": " ",
+          "match": true
+        },
+        {
+          "input": "a",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "\\p{AHex}",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "f",
+          "match": true
+        },
+        {
+          "input": "g",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "\\bword\\b",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "word",
+          "match": true
+        },
+        {
+          "input": "words",
+          "match": false
+        },
+        {
+          "input": "sword",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "\\d+",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "123",
+          "match": true
+        },
+        {
+          "input": "abc",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "\\w+",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "abc_1",
+          "match": true
+        },
+        {
+          "input": "日本",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "\\s",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": " ",
+          "match": true
+        },
+        {
+          "input": "a",
+          "match": false
+        }
+      ],
+      "test262": {
+        "name": "curated-subset",
+        "source": "test/built-ins/RegExp"
+      }
+    },
+    {
+      "pattern": "",
+      "expected": "accept",
+      "tests": [
+        {
+          "input": "",
+          "match": true
+        },
+        {
+          "input": "a",
+          "match": true
+        }
+      ],
+      "test262": {
+        "name": "literals/empty-pattern",
+        "source": "test/built-ins/RegExp/S15.10.2.12_A1_T1.js"
+      }
+    },
+    {
+      "pattern": "\\a",
+      "expected": "syntax_error",
+      "note": "identity escape of ID_Start letter",
+      "test262": {
+        "name": "early-error/syntax/55",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\e",
+      "expected": "syntax_error",
+      "note": "identity escape e",
+      "test262": {
+        "name": "early-error/syntax/56",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\_",
+      "expected": "syntax_error",
+      "note": "identity escape underscore",
+      "test262": {
+        "name": "early-error/syntax/57",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\-",
+      "expected": "syntax_error",
+      "note": "identity escape dash outside class",
+      "test262": {
+        "name": "early-error/syntax/58",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\00",
+      "expected": "syntax_error",
+      "note": "NUL escape followed by decimal digit",
+      "test262": {
+        "name": "early-error/syntax/59",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "a++",
+      "expected": "syntax_error",
+      "note": "possessive-like double quantifier",
+      "test262": {
+        "name": "early-error/syntax/60",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "a?+",
+      "expected": "syntax_error",
+      "note": "quantifier chained on quantifier",
+      "test262": {
+        "name": "early-error/syntax/61",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "a**",
+      "expected": "syntax_error",
+      "note": "quantifier chained on quantifier",
+      "test262": {
+        "name": "early-error/syntax/62",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "a{1}{2}",
+      "expected": "syntax_error",
+      "note": "brace quantifier chained on quantifier",
+      "test262": {
+        "name": "early-error/syntax/63",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "a{1}*",
+      "expected": "syntax_error",
+      "note": "brace quantifier followed by star",
+      "test262": {
+        "name": "early-error/syntax/64",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "a*+",
+      "expected": "syntax_error",
+      "note": "quantifier followed by plus",
+      "test262": {
+        "name": "early-error/syntax/65",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "a{1}+",
+      "expected": "syntax_error",
+      "note": "brace quantifier followed by plus",
+      "test262": {
+        "name": "early-error/syntax/66",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "a{",
+      "expected": "syntax_error",
+      "note": "unterminated brace quantifier",
+      "test262": {
+        "name": "early-error/syntax/67",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "a{}",
+      "expected": "syntax_error",
+      "note": "malformed brace quantifier",
+      "test262": {
+        "name": "early-error/syntax/68",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "a{,1}",
+      "expected": "syntax_error",
+      "note": "missing quantifier minimum",
+      "test262": {
+        "name": "early-error/syntax/69",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "a{2,1}",
+      "expected": "syntax_error",
+      "note": "reversed quantifier range",
+      "test262": {
+        "name": "early-error/syntax/70",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "*",
+      "expected": "syntax_error",
+      "note": "nothing to repeat",
+      "test262": {
+        "name": "early-error/syntax/71",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "+a",
+      "expected": "syntax_error",
+      "note": "nothing to repeat (plus)",
+      "test262": {
+        "name": "early-error/syntax/72",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "?",
+      "expected": "syntax_error",
+      "note": "nothing to repeat (question)",
+      "test262": {
+        "name": "early-error/syntax/73",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "}",
+      "expected": "syntax_error",
+      "note": "lone closing brace",
+      "test262": {
+        "name": "early-error/syntax/74",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "]",
+      "expected": "syntax_error",
+      "note": "lone closing bracket",
+      "test262": {
+        "name": "early-error/syntax/75",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": ")",
+      "expected": "syntax_error",
+      "note": "lone closing paren",
+      "test262": {
+        "name": "early-error/syntax/76",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "(a",
+      "expected": "syntax_error",
+      "note": "unterminated group",
+      "test262": {
+        "name": "early-error/syntax/77",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "[a",
+      "expected": "syntax_error",
+      "note": "unterminated character class",
+      "test262": {
+        "name": "early-error/syntax/78",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "[]",
+      "expected": "syntax_error",
+      "note": "empty character class",
+      "test262": {
+        "name": "early-error/syntax/79",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "[z-a]",
+      "expected": "syntax_error",
+      "note": "reversed class range",
+      "test262": {
+        "name": "early-error/syntax/80",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "[\\w-a]",
+      "expected": "syntax_error",
+      "note": "non-singleton range endpoint",
+      "test262": {
+        "name": "early-error/syntax/81",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "[a-\\d]",
+      "expected": "syntax_error",
+      "note": "class escape as range endpoint",
+      "test262": {
+        "name": "early-error/syntax/82",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "[\\p{L}-a]",
+      "expected": "syntax_error",
+      "note": "property escape as range endpoint",
+      "test262": {
+        "name": "early-error/syntax/83",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "[[a]]",
+      "expected": "syntax_error",
+      "note": "nested character class",
+      "test262": {
+        "name": "early-error/syntax/84",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\uD800",
+      "expected": "syntax_error",
+      "note": "lone leading surrogate",
+      "test262": {
+        "name": "early-error/syntax/85",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\uDC00",
+      "expected": "syntax_error",
+      "note": "lone trailing surrogate",
+      "test262": {
+        "name": "early-error/syntax/86",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\uD83D\\u0041",
+      "expected": "syntax_error",
+      "note": "leading surrogate not followed by trailing",
+      "test262": {
+        "name": "early-error/syntax/87",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\u{D800}",
+      "expected": "syntax_error",
+      "note": "lone surrogate in braced escape",
+      "test262": {
+        "name": "early-error/syntax/88",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\u{110000}",
+      "expected": "syntax_error",
+      "note": "code point above 0x10FFFF",
+      "test262": {
+        "name": "early-error/syntax/89",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\u12",
+      "expected": "syntax_error",
+      "note": "short unicode escape",
+      "test262": {
+        "name": "early-error/syntax/90",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\x4",
+      "expected": "syntax_error",
+      "note": "short hex escape",
+      "test262": {
+        "name": "early-error/syntax/91",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\c",
+      "expected": "syntax_error",
+      "note": "dangling control escape",
+      "test262": {
+        "name": "early-error/syntax/92",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\c0",
+      "expected": "syntax_error",
+      "note": "control escape with digit in u mode",
+      "test262": {
+        "name": "early-error/syntax/93",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\c_",
+      "expected": "syntax_error",
+      "note": "control escape with underscore in u mode",
+      "test262": {
+        "name": "early-error/syntax/94",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\",
+      "expected": "syntax_error",
+      "note": "trailing backslash",
+      "test262": {
+        "name": "early-error/syntax/95",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "(?<x>a)(?<x>b)",
+      "expected": "syntax_error",
+      "note": "duplicate capture group name",
+      "test262": {
+        "name": "early-error/syntax/96",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\k<nope>",
+      "expected": "syntax_error",
+      "note": "named backreference to missing group",
+      "test262": {
+        "name": "early-error/syntax/97",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "[\\k<a>]",
+      "expected": "syntax_error",
+      "note": "named backreference inside class",
+      "test262": {
+        "name": "early-error/syntax/98",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "[\\1]",
+      "expected": "syntax_error",
+      "note": "decimal escape inside class",
+      "test262": {
+        "name": "early-error/syntax/99",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "[\\B]",
+      "expected": "syntax_error",
+      "note": "non-word-boundary escape inside class",
+      "test262": {
+        "name": "early-error/syntax/100",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\p{Foo}",
+      "expected": "syntax_error",
+      "note": "unknown Unicode property",
+      "test262": {
+        "name": "early-error/syntax/101",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\p{gc=Foo}",
+      "expected": "syntax_error",
+      "note": "unknown general category value",
+      "test262": {
+        "name": "early-error/syntax/102",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "\\p{sc=Quux}",
+      "expected": "syntax_error",
+      "note": "unknown script value",
+      "test262": {
+        "name": "early-error/syntax/103",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "(?>a)",
+      "expected": "syntax_error",
+      "note": "atomic group syntax",
+      "test262": {
+        "name": "early-error/syntax/104",
+        "source": "test/built-ins/RegExp/early-error-unicode.js"
+      }
+    },
+    {
+      "pattern": "(a)\\1",
+      "expected": "unsupported",
+      "note": "numbered backreference",
+      "test262": {
+        "name": "early-error/unsupported/105",
+        "source": "test/built-ins/RegExp/unsupported-subset.js"
+      }
+    },
+    {
+      "pattern": "\\1",
+      "expected": "unsupported",
+      "note": "numbered backreference without group",
+      "test262": {
+        "name": "early-error/unsupported/106",
+        "source": "test/built-ins/RegExp/unsupported-subset.js"
+      }
+    },
+    {
+      "pattern": "(?=a)",
+      "expected": "unsupported",
+      "note": "lookahead assertion",
+      "test262": {
+        "name": "early-error/unsupported/107",
+        "source": "test/built-ins/RegExp/unsupported-subset.js"
+      }
+    },
+    {
+      "pattern": "(?!a)",
+      "expected": "unsupported",
+      "note": "negative lookahead assertion",
+      "test262": {
+        "name": "early-error/unsupported/108",
+        "source": "test/built-ins/RegExp/unsupported-subset.js"
+      }
+    },
+    {
+      "pattern": "(?<=a)",
+      "expected": "unsupported",
+      "note": "lookbehind assertion",
+      "test262": {
+        "name": "early-error/unsupported/109",
+        "source": "test/built-ins/RegExp/unsupported-subset.js"
+      }
+    },
+    {
+      "pattern": "(?<!a)",
+      "expected": "unsupported",
+      "note": "negative lookbehind assertion",
+      "test262": {
+        "name": "early-error/unsupported/110",
+        "source": "test/built-ins/RegExp/unsupported-subset.js"
+      }
+    },
+    {
+      "pattern": "\\p{Script_Extensions=Hani}",
+      "expected": "unsupported",
+      "note": "Script_Extensions property",
+      "test262": {
+        "name": "early-error/unsupported/111",
+        "source": "test/built-ins/RegExp/unsupported-subset.js"
+      }
+    },
+    {
+      "pattern": "\\p{Age=7.0}",
+      "expected": "unsupported",
+      "note": "Age property",
+      "test262": {
+        "name": "early-error/unsupported/112",
+        "source": "test/built-ins/RegExp/unsupported-subset.js"
+      }
+    },
+    {
+      "pattern": "\\p{Block=Basic_Latin}",
+      "expected": "unsupported",
+      "note": "Block property",
+      "test262": {
+        "name": "early-error/unsupported/113",
+        "source": "test/built-ins/RegExp/unsupported-subset.js"
+      }
+    },
+    {
+      "pattern": "\\A",
+      "expected": "unsupported",
+      "note": "Ruby start anchor",
+      "test262": {
+        "name": "early-error/unsupported/114",
+        "source": "test/built-ins/RegExp/unsupported-subset.js"
+      }
+    },
+    {
+      "pattern": "\\z",
+      "expected": "unsupported",
+      "note": "Ruby end anchor",
+      "test262": {
+        "name": "early-error/unsupported/115",
+        "source": "test/built-ins/RegExp/unsupported-subset.js"
+      }
+    },
+    {
+      "pattern": "\\K",
+      "expected": "unsupported",
+      "note": "Ruby keep escape",
+      "test262": {
+        "name": "early-error/unsupported/116",
+        "source": "test/built-ins/RegExp/unsupported-subset.js"
+      }
+    },
+    {
+      "pattern": "[a&&b]",
+      "expected": "unsupported",
+      "note": "character class set operation",
+      "test262": {
+        "name": "early-error/unsupported/117",
+        "source": "test/built-ins/RegExp/unsupported-subset.js"
+      }
+    }
+  ]
+}

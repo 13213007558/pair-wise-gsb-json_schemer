@@ -28,6 +28,7 @@ module JSONSchemer
     NET_HTTP_REF_RESOLVER = proc { |uri| JSON.parse(Net::HTTP.get(uri)) }
     RUBY_REGEXP_RESOLVER = proc { |pattern| Regexp.new(pattern) }
     ECMA_REGEXP_RESOLVER = proc { |pattern| Regexp.new(EcmaRegexp.ruby_equivalent(pattern)) }
+    ECMA_UNICODE_REGEXP_RESOLVER = proc { |pattern| EcmaUnicodePattern.ruby_equivalent(pattern) }
 
     DEFAULT_PROPERTY_DEFAULT_RESOLVER = proc do |instance, property, results_with_tree_validity|
       results_with_tree_validity = results_with_tree_validity.select(&:last) unless results_with_tree_validity.size == 1
@@ -352,6 +353,8 @@ module JSONSchemer
       @regexp_resolver ||= case @configuration.regexp_resolver
       when 'ecma'
         CachedResolver.new(&ECMA_REGEXP_RESOLVER)
+      when 'ecma_2024_u'
+        CachedResolver.new(&ECMA_UNICODE_REGEXP_RESOLVER)
       when 'ruby'
         CachedResolver.new(&RUBY_REGEXP_RESOLVER)
       else

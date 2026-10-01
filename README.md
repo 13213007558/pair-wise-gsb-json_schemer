@@ -226,8 +226,11 @@ JSONSchemer.schema(
   ref_resolver: 'net/http',
 
   # use different method to match regexes
-  # 'ruby'/'ecma'/proc/lambda/respond_to?(:call)
+  # 'ruby'/'ecma'/'ecma_2024_u'/proc/lambda/respond_to?(:call)
   # 'ruby': proc { |pattern| Regexp.new(pattern) }
+  # 'ecma_2024_u': strict ECMAScript 2024 `u` mode parse followed by an
+  #   equivalent Ruby matcher; rejects illegal identity escapes, lone
+  #   surrogates and Ruby-only syntax with source-indexed errors
   # default: 'ruby'
   regexp_resolver: proc do |pattern|
     RE2::Regexp.new(pattern)
