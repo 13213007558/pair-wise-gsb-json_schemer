@@ -226,8 +226,9 @@ JSONSchemer.schema(
   ref_resolver: 'net/http',
 
   # use different method to match regexes
-  # 'ruby'/'ecma'/proc/lambda/respond_to?(:call)
+  # 'ruby'/'ecma'/'ecma_2024_u'/proc/lambda/respond_to?(:call)
   # 'ruby': proc { |pattern| Regexp.new(pattern) }
+  # 'ecma_2024_u': parses the selected ECMAScript 2024 Unicode-mode subset and emits a Ruby matcher
   # default: 'ruby'
   regexp_resolver: proc do |pattern|
     RE2::Regexp.new(pattern)

@@ -98,4 +98,62 @@ class RegexTest < Minitest::Test
     schema = JSONSchemer.schema({ 'format' => 'regex' })
     assert(schema.valid?('\0'))
   end
+
+  def test_ecma_2024_u_resolver
+    schema = JSONSchemer.schema(
+      { 'pattern' => '^\u{1F600}$' },
+      :regexp_resolver => 'ecma_2024_u'
+    )
+    assert(schema.valid?("\u{1F600}"))
+    refute(schema.valid?('x'))
+
+    schema = JSONSchemer.schema(
+      { 'pattern' => '^.$' },
+      :regexp_resolver => 'ecma_2024_u'
+    )
+    assert(schema.valid?('a'))
+    refute(schema.valid?("\r"))
+  end
+
+  def test_ecma_2024_u_keeps_legacy_resolvers_optional
+    ecma = JSONSchemer.schema({ 'pattern' => '^a$' }, :regexp_resolver => 'ecma')
+    modern = JSONSchemer.schema({ 'pattern' => '^a$' }, :regexp_resolver => 'ecma_2024_u')
+    refute(ecma.valid?("a\n"))
+    assert(modern.valid?("a\n"))
+
+    assert_raises(JSONSchemer::InvalidEcmaRegexp) do
+      JSONSchemer.schema({ 'pattern' => '\\A' }, :regexp_resolver => 'ecma').valid?('a')
+    end
+    assert_raises(JSONSchemer::Ecma2024URegexpError) do
+      JSONSchemer.schema({ 'pattern' => '\\A' }, :regexp_resolver => 'ecma_2024_u').valid?('a')
+    end
+  end
+
+  def test_ecma_2024_u_test262_subset
+    vectors = JSON.parse(File.read(File.expand_path('fixtures/ecma2024_u_test262_subset.json', __dir__)))
+    assert_equal('es2024', vectors.fetch('revision'))
+
+    vectors.fetch('valid').each do |vector|
+      pattern = vector.fetch('pattern')
+      matcher = JSONSchemer::Ecma2024URegexp.resolver.call(pattern)
+      vector.fetch('matches').each { |value| assert(matcher.match?(value), "#{pattern.inspect} should match #{value.inspect}") }
+      vector.fetch('non_matches').each { |value| refute(matcher.match?(value), "#{pattern.inspect} should not match #{value.inspect}") }
+    end
+
+    vectors.fetch('invalid').each do |vector|
+      error = assert_raises(JSONSchemer::Ecma2024URegexpError, vector.inspect) do
+        JSONSchemer::Ecma2024URegexp.ruby_equivalent(vector.fetch('pattern'))
+      end
+      refute_kind_of(JSONSchemer::UnsupportedEcma2024URegexp, error, vector.inspect)
+      assert_equal(vector.fetch('position'), error.position, vector.inspect)
+    end
+
+    vectors.fetch('unsupported').each do |vector|
+      error = assert_raises(JSONSchemer::UnsupportedEcma2024URegexp, vector.inspect) do
+        JSONSchemer::Ecma2024URegexp.ruby_equivalent(vector.fetch('pattern'))
+      end
+      assert_equal(vector.fetch('position'), error.position, vector.inspect)
+      assert_includes(error.message, vector.fetch('message'), vector.inspect)
+    end
+  end
 end

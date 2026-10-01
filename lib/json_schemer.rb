@@ -76,6 +76,7 @@ module JSONSchemer
   class InvalidRegexpResolution < StandardError; end
   class InvalidFileURI < StandardError; end
   class InvalidEcmaRegexp < StandardError; end
+  require 'json_schemer/ecma_2024_u_regexp'
 
   VOCABULARIES = {
     'https://json-schema.org/draft/2020-12/vocab/core' => Draft202012::Vocab::CORE,
