@@ -105,6 +105,58 @@ module JSONSchemer
       validate(instance, :output_format => 'flag', **options).fetch('valid')
     end
 
+    # Returns a {DefaultsPlan} describing the `default` values that would be
+    # inserted into `instance` without modifying it. The plan includes each
+    # proposed patch, the schema location it comes from, and any unresolved
+    # conflicts between valid conditional branches.
+    def plan_defaults(instance)
+      working_instance = deep_stringify_keys(instance)
+      context = Context.new(working_instance, [], nil, false, @configuration.access_mode)
+      result = validate_instance(working_instance, Location.root, root_keyword_location, context)
+
+      changes = []
+      conflicts = []
+
+      result.property_default_candidates.each do |parent_instance_location, properties|
+        parent_pointer = Location.resolve(parent_instance_location)
+        properties.each do |property, results_with_tree_validity|
+          results_with_tree_validity = results_with_tree_validity.select(&:last) unless results_with_tree_validity.size == 1
+          next if results_with_tree_validity.empty?
+
+          candidates = results_with_tree_validity.map do |default_result, _tree_valid|
+            DefaultsPlan::Candidate.new(
+              :value => default_result.annotation,
+              :keyword_location => Location.resolve(default_result.keyword_location),
+              :absolute_keyword_location => default_result.source.absolute_keyword_location
+            )
+          end
+          candidates.uniq! { |candidate| candidate.absolute_keyword_location }
+
+          if candidates.map(&:value).uniq.size > 1
+            conflicts << DefaultsPlan::Conflict.new(
+              :instance_location => parent_pointer,
+              :property => property,
+              :candidates => candidates
+            )
+          else
+            source = candidates.first
+            changes << DefaultsPlan::Change.new(
+              :instance_location => parent_pointer,
+              :property => property,
+              :value => source.value,
+              :keyword_location => source.keyword_location,
+              :absolute_keyword_location => source.absolute_keyword_location
+            )
+          end
+        end
+      end
+
+      changes.sort_by! { |change| [change.instance_location.count('/'), change.instance_location, change.property] }
+      conflicts.sort_by! { |conflict| [conflict.instance_location, conflict.property] }
+
+      DefaultsPlan.new(self, changes, conflicts)
+    end
+
     def validate(instance, output_format: @configuration.output_format, resolve_enumerators: @configuration.resolve_enumerators, access_mode: @configuration.access_mode)
       instance_location = Location.root
       context = Context.new(instance, [], nil, (!insert_property_defaults && output_format == 'flag'), access_mode)
@@ -115,6 +167,15 @@ module JSONSchemer
       output = result.output(output_format)
       resolve_enumerators!(output) if resolve_enumerators
       output
+    end
+
+    # @api private
+    # Validates `instance` without inserting property defaults, regardless of
+    # the `insert_property_defaults` option. Returns the `flag` output format.
+    def validate_without_property_defaults(instance)
+      context = Context.new(instance, [], nil, true, @configuration.access_mode)
+      result = validate_instance(deep_stringify_keys(instance), Location.root, root_keyword_location, context)
+      result.output('flag')
     end
 
     def valid_schema?(**options)

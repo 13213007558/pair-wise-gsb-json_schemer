@@ -69,6 +69,50 @@ JSONSchemer.schema(
 data
 # => {"foo"=>"bar"}
 
+# planning default property values
+
+# `plan_defaults` returns the defaults that `insert_property_defaults` would add,
+# without modifying the passed instance. Each change includes the proposed value
+# and the schema location (`keywordLocation`/`absoluteKeywordLocation`) it comes from.
+# When multiple valid branches (such as `anyOf`/`oneOf`/`if`) disagree on a default,
+# the candidates are reported as conflicts and no value is inserted automatically.
+
+schema = {
+  'properties' => {
+    'foo' => {
+      'default' => 'bar'
+    }
+  }
+}
+schemer = JSONSchemer.schema(schema)
+
+data = {}
+plan = schemer.plan_defaults(data)
+data
+# => {}
+plan.to_h
+# => {"changes"=>
+#      [{"instanceLocation"=>"",
+#        "property"=>"foo",
+#        "value"=>"bar",
+#        "keywordLocation"=>"/properties/foo/default",
+#        "absoluteKeywordLocation"=>"json-schemer://schema#/properties/foo/default"}],
+#     "conflicts"=>[]}
+
+# `apply` first checks that the instance still satisfies the plan preconditions,
+# inserts the values, and then re-validates. It rolls back and returns `false`
+# if the preconditions no longer hold or validation fails, leaving no partial changes.
+
+plan.apply(data)
+# => true
+data
+# => {"foo"=>"bar"}
+
+# Re-planning data whose defaults are already present yields an empty plan.
+
+schemer.plan_defaults(data).empty?
+# => true
+
 # schema files
 
 require 'pathname'

@@ -3,7 +3,7 @@ module JSONSchemer
   class Keyword
     include Output
 
-    attr_reader :value, :parent, :root, :parsed
+    attr_reader :value, :parent, :root, :parsed, :keyword
 
     def initialize(value, parent, keyword, schema = parent)
       @value = value
