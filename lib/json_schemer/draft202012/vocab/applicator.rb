@@ -97,7 +97,10 @@ module JSONSchemer
           end
 
           def validate(instance, instance_location, keyword_location, context)
-            return unless context.adjacent_results.key?(If) && context.adjacent_results.fetch(If).annotation
+            if !(context.adjacent_results.key?(If) && context.adjacent_results.fetch(If).annotation)
+              context.coverage_skip_reason = 'if was false'
+              return
+            end
             subschema_result = parsed.validate_instance(instance, instance_location, keyword_location, context)
             result(instance, instance_location, keyword_location, subschema_result.valid, subschema_result.nested)
           end
@@ -113,7 +116,10 @@ module JSONSchemer
           end
 
           def validate(instance, instance_location, keyword_location, context)
-            return unless context.adjacent_results.key?(If) && !context.adjacent_results.fetch(If).annotation
+            if !(context.adjacent_results.key?(If) && !context.adjacent_results.fetch(If).annotation)
+              context.coverage_skip_reason = context.adjacent_results.key?(If) ? 'if was true' : 'no if keyword'
+              return
+            end
             subschema_result = parsed.validate_instance(instance, instance_location, keyword_location, context)
             result(instance, instance_location, keyword_location, subschema_result.valid, subschema_result.nested)
           end

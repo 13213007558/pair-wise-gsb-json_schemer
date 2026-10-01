@@ -259,6 +259,44 @@ end
 JSONSchemer.configuration.insert_property_defaults = true
 ```
 
+## Schema Coverage
+
+All-green schema tests can still miss branches: a `oneOf` arm, an `else` block, or a `$ref` call site that none of your example instances exercise. `JSONSchemer::Coverage::Observer` is an opt-in evaluation observer that records keyword attempts, successes, failures, short-circuited/skipped branches, and reference calls.
+
+Validation without an observer records nothing. Pass one via the `coverage_observer` option to `valid?` or `validate`, validate one or more instances, then call `report`.
+
+```ruby
+schema = {
+  'oneOf' => [
+    { 'type' => 'integer' },
+    { 'type' => 'string' },
+    { 'const' => true }
+  ]
+}
+schemer = JSONSchemer.schema(schema)
+observer = JSONSchemer::Coverage::Observer.new
+[1, 'a', 2].each { |instance| schemer.valid?(instance, coverage_observer: observer) }
+report = observer.report(schemer)
+report[:uncovered]
+```
+
+```text
+[{ :pointer => "#/oneOf/2",
+   :keyword => "oneOf",
+   :branch => 2,
+   :reason => "never matched" }]
+```
+
+`report` returns a hash with:
+
+- keyword locations with `:attempts`, `:passed`, `:failed`, `:skipped`, and `:skip_reasons` (such as `"if was true"` or `"short circuit"`) under `:keywords`
+- conditional (`if`/`then`/`else`) and combination (`allOf`/`anyOf`/`oneOf`) branches with attempt and match counts under `:branches`
+- every `$ref`/`$recursiveRef`/`$dynamicRef` call site with call counts and resolved target pointers under `:refs` (recursive references are not expanded)
+- branches that never matched and reference call sites that were never reached under `:uncovered`
+- the fraction of branches and reference call sites covered under `:coverage`
+
+Locations use stable JSON pointers relative to the root schema (`#` is the root). The same schema referenced from two positions is reported separately for each call site, while the resolved target pointer lets you correlate them. When one observer is used against multiple root schemas, pass the schema to `report(schemer)`.
+
 ## Custom Error Messages
 
 Error messages can be customized using the `x-error` keyword and/or [I18n](https://github.com/ruby-i18n/i18n) translations. `x-error` takes precedence if both are defined.

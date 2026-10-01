@@ -36,6 +36,7 @@ module JSONSchemer
               end
             end
 
+            context.coverage_observer&.ref(self, schema, instance_location)
             schema.validate_instance(instance, instance_location, keyword_location, context)
           end
         end

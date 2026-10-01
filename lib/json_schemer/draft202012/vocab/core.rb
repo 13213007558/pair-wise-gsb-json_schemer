@@ -64,7 +64,9 @@ module JSONSchemer
           end
 
           def validate(instance, instance_location, keyword_location, context)
-            ref_schema.validate_instance(instance, instance_location, keyword_location, context)
+            target = ref_schema
+            context.coverage_observer&.ref(self, target, instance_location)
+            target.validate_instance(instance, instance_location, keyword_location, context)
           end
         end
 
@@ -105,6 +107,7 @@ module JSONSchemer
               end
             end
 
+            context.coverage_observer&.ref(self, schema, instance_location)
             schema.validate_instance(instance, instance_location, keyword_location, context)
           end
         end

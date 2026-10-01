@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 module JSONSchemer
   class Schema
-    Context = Struct.new(:instance, :dynamic_scope, :adjacent_results, :short_circuit, :access_mode) do
+    Context = Struct.new(:instance, :dynamic_scope, :adjacent_results, :short_circuit, :access_mode, :coverage_observer, :coverage_skip_reason) do
       def original_instance(instance_location)
         Hana::Pointer.parse(Location.resolve(instance_location)).reduce(instance) do |obj, token|
           if obj.is_a?(Array)
@@ -105,9 +105,9 @@ module JSONSchemer
       validate(instance, :output_format => 'flag', **options).fetch('valid')
     end
 
-    def validate(instance, output_format: @configuration.output_format, resolve_enumerators: @configuration.resolve_enumerators, access_mode: @configuration.access_mode)
+    def validate(instance, output_format: @configuration.output_format, resolve_enumerators: @configuration.resolve_enumerators, access_mode: @configuration.access_mode, coverage_observer: nil)
       instance_location = Location.root
-      context = Context.new(instance, [], nil, (!insert_property_defaults && output_format == 'flag'), access_mode)
+      context = Context.new(instance, [], nil, (!insert_property_defaults && output_format == 'flag'), access_mode, coverage_observer)
       result = validate_instance(deep_stringify_keys(instance), instance_location, root_keyword_location, context)
       if insert_property_defaults && result.insert_property_defaults(context, &property_default_resolver)
         result = validate_instance(deep_stringify_keys(instance), instance_location, root_keyword_location, context)
@@ -134,23 +134,48 @@ module JSONSchemer
       original_adjacent_results = context.adjacent_results
       adjacent_results = context.adjacent_results = {}
       short_circuit = context.short_circuit
+      coverage_observer = context.coverage_observer
+      schema_result = nil
 
       begin
-        return result(instance, instance_location, keyword_location, false) if value == false
-        return result(instance, instance_location, keyword_location, true) if value == true || value.empty?
+        if value == false
+          schema_result = result(instance, instance_location, keyword_location, false)
+          return schema_result
+        end
+        if value == true || value.empty?
+          schema_result = result(instance, instance_location, keyword_location, true)
+          return schema_result
+        end
 
         valid = true
         nested = []
+        short_circuited = false
 
         parsed.each do |keyword, keyword_instance|
-          next unless keyword_result = keyword_instance.validate(instance, instance_location, join_location(keyword_location, keyword), context)
+          keyword_result = keyword_instance.validate(instance, instance_location, join_location(keyword_location, keyword), context)
+          unless keyword_result
+            coverage_observer&.skip(keyword_instance, context.coverage_skip_reason || 'not applicable', instance_location)
+            context.coverage_skip_reason = nil
+            next
+          end
           valid &&= keyword_result.valid
-          return result(instance, instance_location, keyword_location, false) if short_circuit && !valid
+          coverage_observer&.keyword(keyword_instance, keyword_result.valid, instance_location)
+          if short_circuit && !valid
+            short_circuited = true
+            if coverage_observer
+              keywords_to_record = parsed.keys
+              recorded_index = keywords_to_record.index(keyword)
+              keywords_to_record[(recorded_index + 1)..].each do |remaining_keyword|
+                coverage_observer.skip(parsed.fetch(remaining_keyword), 'short circuit', instance_location)
+              end
+            end
+            break
+          end
           nested << keyword_result
           adjacent_results[keyword_instance.class] = keyword_result
         end
 
-        if root.custom_keywords.any?
+        if !short_circuited && root.custom_keywords.any?
           resolved_instance_location = Location.resolve(instance_location)
           root.custom_keywords.each do |custom_keyword, callable|
             if value.key?(custom_keyword)
@@ -165,11 +190,13 @@ module JSONSchemer
           end
         end
 
-        result(instance, instance_location, keyword_location, valid, nested)
+        schema_result = result(instance, instance_location, keyword_location, valid, nested)
       ensure
+        coverage_observer&.schema(self, schema_result.valid, instance_location) if schema_result
         context.dynamic_scope.pop
         context.adjacent_results = original_adjacent_results
       end
+      schema_result
     end
 
     def resolve_ref(uri)
