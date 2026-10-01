@@ -64,7 +64,9 @@ module JSONSchemer
           end
 
           def validate(instance, instance_location, keyword_location, context)
-            ref_schema.validate_instance(instance, instance_location, keyword_location, context)
+            result = ref_schema.validate_instance(instance, instance_location, keyword_location, context)
+            context.observer&.record(:ref, self, instance_location, :target => ref_schema)
+            result
           end
         end
 
@@ -105,7 +107,9 @@ module JSONSchemer
               end
             end
 
-            schema.validate_instance(instance, instance_location, keyword_location, context)
+            result = schema.validate_instance(instance, instance_location, keyword_location, context)
+            context.observer&.record(:ref, self, instance_location, :target => schema)
+            result
           end
         end
 

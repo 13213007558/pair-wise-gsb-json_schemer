@@ -259,9 +259,45 @@ end
 JSONSchemer.configuration.insert_property_defaults = true
 ```
 
-## Custom Error Messages
 
-Error messages can be customized using the `x-error` keyword and/or [I18n](https://github.com/ruby-i18n/i18n) translations. `x-error` takes precedence if both are defined.
+## Schema Coverage
+
+Pass an evaluation observer to `validate`/`valid?` to record which parts of a schema are exercised by a set of instances. This is useful for finding schema branches that test data never reaches (eg a `oneOf` branch that never matches even though every test passes). Observing is opt-in: validation without an observer records nothing, and enabling it does not change results or cause user callbacks (like `format` validators) to run more than once.
+
+```ruby
+schemer = JSONSchemer.schema({
+  'oneOf' => [
+    { 'type' => 'integer' },
+    { 'type' => 'string' }
+  ]
+})
+
+observer = JSONSchemer::Coverage::Observer.new
+schemer.valid?(1, :observer => observer)
+schemer.valid?(2, :observer => observer)
+
+report = observer.report
+report.fully_covered?
+# => false
+report.uncovered.keys
+# => ["json-schemer://schema#/oneOf/1", "json-schemer://schema#/oneOf/1/type"]
+```
+
+Locations are stable absolute keyword location URIs. A location is covered once at least one instance evaluates successfully (valid) at that location. The report aggregates every observed validation and offers filtered views for conditionals (`if`/`then`/`else`), combinator branches (`allOf`/`anyOf`/`oneOf`), and reference call sites (`$ref`/`$dynamicRef`/`$recursiveRef`):
+
+```ruby
+report.conditionals # if/then/else locations
+report.branches     # combinator branch locations
+report.refs         # reference call sites, each with its target location
+report.summary      # => {"instances"=>2, "total"=>6, "covered"=>4, "uncovered"=>2, "coverage"=>0.66}
+report.to_h         # JSON-serializable hash of all locations and counts
+```
+
+Reference call sites are tracked by the location of the reference itself, so two references to the same target are reported separately, and recursive references are not expanded indefinitely. Each location reports `attempts`, `successes`, `failures`, and `skips` (keywords skipped by short-circuiting or inapplicable conditionals); the raw event log is available as `observer.events`.
+
+## Custom Error Messages
++
++Error messages can be customized using the `x-error` keyword and/or [I18n](https://github.com/ruby-i18n/i18n) translations. `x-error` takes precedence if both are defined.
 
 ### `x-error` Keyword
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Features
+
+- Add optional evaluation observer (`JSONSchemer::Coverage::Observer`) that records keyword attempts, successes, failures, and short-circuit skips during validation and aggregates schema coverage (if/then/else, combinator branches, and reference call sites) across a set of instances
+
 ## [2.5.0] - 2025-12-08
 
 ### Bug Fixes

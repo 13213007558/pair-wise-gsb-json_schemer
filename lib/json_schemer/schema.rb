@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 module JSONSchemer
   class Schema
-    Context = Struct.new(:instance, :dynamic_scope, :adjacent_results, :short_circuit, :access_mode) do
+    Context = Struct.new(:instance, :dynamic_scope, :adjacent_results, :short_circuit, :access_mode, :observer) do
       def original_instance(instance_location)
         Hana::Pointer.parse(Location.resolve(instance_location)).reduce(instance) do |obj, token|
           if obj.is_a?(Array)
@@ -105,9 +105,10 @@ module JSONSchemer
       validate(instance, :output_format => 'flag', **options).fetch('valid')
     end
 
-    def validate(instance, output_format: @configuration.output_format, resolve_enumerators: @configuration.resolve_enumerators, access_mode: @configuration.access_mode)
+    def validate(instance, output_format: @configuration.output_format, resolve_enumerators: @configuration.resolve_enumerators, access_mode: @configuration.access_mode, observer: nil)
       instance_location = Location.root
-      context = Context.new(instance, [], nil, (!insert_property_defaults && output_format == 'flag'), access_mode)
+      context = Context.new(instance, [], nil, (!insert_property_defaults && output_format == 'flag'), access_mode, observer)
+      observer&.observe(root)
       result = validate_instance(deep_stringify_keys(instance), instance_location, root_keyword_location, context)
       if insert_property_defaults && result.insert_property_defaults(context, &property_default_resolver)
         result = validate_instance(deep_stringify_keys(instance), instance_location, root_keyword_location, context)
@@ -130,10 +131,19 @@ module JSONSchemer
     end
 
     def validate_instance(instance, instance_location, keyword_location, context)
+      observer = context.observer
+      observer&.record(:attempt, self, instance_location)
+      result = evaluate_instance(instance, instance_location, keyword_location, context)
+      observer&.record(result.valid ? :success : :failure, self, instance_location)
+      result
+    end
+
+    def evaluate_instance(instance, instance_location, keyword_location, context)
       context.dynamic_scope.push(self)
       original_adjacent_results = context.adjacent_results
       adjacent_results = context.adjacent_results = {}
       short_circuit = context.short_circuit
+      observer = context.observer
 
       begin
         return result(instance, instance_location, keyword_location, false) if value == false
@@ -141,11 +151,27 @@ module JSONSchemer
 
         valid = true
         nested = []
+        attempted_keywords = [] if observer
 
         parsed.each do |keyword, keyword_instance|
-          next unless keyword_result = keyword_instance.validate(instance, instance_location, join_location(keyword_location, keyword), context)
+          observable = observer && Coverage.assertion_keyword?(keyword_instance)
+          observer.record(:attempt, keyword_instance, instance_location) if observable
+          attempted_keywords << keyword_instance if observer
+          keyword_result = keyword_instance.validate(instance, instance_location, join_location(keyword_location, keyword), context)
+          unless keyword_result
+            observer.record(:skip, keyword_instance, instance_location, :reason => :not_applicable) if observable
+            next
+          end
           valid &&= keyword_result.valid
-          return result(instance, instance_location, keyword_location, false) if short_circuit && !valid
+          observer.record(keyword_result.valid ? :success : :failure, keyword_instance, instance_location) if observable
+          if short_circuit && !valid
+            if observer
+              (parsed.values - attempted_keywords).each do |skipped_keyword|
+                observer.record(:skip, skipped_keyword, instance_location, :reason => :short_circuit) if Coverage.assertion_keyword?(skipped_keyword)
+              end
+            end
+            return result(instance, instance_location, keyword_location, false)
+          end
           nested << keyword_result
           adjacent_results[keyword_instance.class] = keyword_result
         end
@@ -171,6 +197,7 @@ module JSONSchemer
         context.adjacent_results = original_adjacent_results
       end
     end
+    private :evaluate_instance
 
     def resolve_ref(uri)
       pointer = ''
