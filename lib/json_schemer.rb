@@ -61,6 +61,7 @@ require 'json_schemer/openapi30/vocab'
 require 'json_schemer/openapi'
 require 'json_schemer/configuration'
 require 'json_schemer/resources'
+require 'json_schemer/schema_migration'
 require 'json_schemer/schema'
 
 module JSONSchemer
@@ -120,6 +121,13 @@ module JSONSchemer
     def schema(schema, **options)
       schema = resolve(schema, options)
       Schema.new(schema, **options)
+    end
+
+    def migrate_schema_to_202012(schema, source: nil, **options)
+      migration_options = options.dup
+      migration_options[:ref_resolver] ||= CachedResolver.new(&FILE_URI_REF_RESOLVER)
+      schema = resolve(schema, migration_options)
+      SchemaMigration.new(schema, :source => source).to_202012
     end
 
     def valid_schema?(schema, **options)

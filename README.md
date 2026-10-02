@@ -95,6 +95,16 @@ JSONSchemer.validate_schema({ '$id' => '#invalid' }).to_a
 #      "type"=>"pattern",
 #      "error"=>"string at `/$id` does not match pattern: ^[^#]*#?$"}]
 
+# migrate Draft 4 or Draft 7 schemas to Draft 2020-12
+
+migration = JSONSchemer.migrate_schema_to_202012(schema)
+migration.schema       # converted schema
+migration.transforms   # from/to pointers and a description for each transform
+migration.diagnostics  # rules or reference environments that are not guaranteed equivalent
+migration.equivalent?  # false when an error diagnostic is present
+# Unsupported rules are not silently deleted; they are retained as data under
+# the `x-json-schemer-migration` annotation.
+
 # subschemas
 
 schema = {
