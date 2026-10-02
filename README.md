@@ -53,6 +53,42 @@ schemer.validate({ 'abc' => 10 }).to_a
 #      "type"=>"minimum",
 #      "error"=>"number at `/abc` is less than: 11"}]
 
+# streaming validation of large arrays (`validate_stream`)
+#
+# Reads a top-level JSON array in fixed-size UTF-8 chunks and validates items
+# one at a time, so the parsed document and completed array items are never
+# retained. Yields the same classic-format error hashes as `validate`. The
+# schema is analyzed first; keywords that require the complete array raise
+# `JSONSchemer::StreamingUnsupportedError` unless an explicit bounded cache is
+# supplied.
+
+require 'stringio'
+
+schemer = JSONSchemer.schema(
+  {
+    'type' => 'array',
+    'minItems' => 1,
+    'prefixItems' => [{ 'type' => 'integer' }],
+    'items' => { 'type' => 'string', 'maxLength' => 10 }
+  }
+)
+
+File.open('data.json', 'rb') do |file|
+  schemer.validate_stream(file, chunk_size: 4096) do |error|
+    puts error.fetch('error')
+  end
+end
+
+schemer.streamable?
+# => true
+
+# `uniqueItems` needs one retained value per item, so it requires an explicit,
+# caller-bounded cache:
+require 'set'
+JSONSchemer
+  .schema({ 'type' => 'array', 'uniqueItems' => true })
+  .validate_stream(file, :unique_items_cache => Set.new) { }
+
 # default property values
 
 data = {}

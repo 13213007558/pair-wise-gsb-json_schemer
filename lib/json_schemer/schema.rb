@@ -105,6 +105,50 @@ module JSONSchemer
       validate(instance, :output_format => 'flag', **options).fetch('valid')
     end
 
+    # Streams and validates a top-level JSON array from a String or IO-like
+    # source without parsing or retaining the complete instance. Yields each
+    # classic-format error hash (the same hashes returned by {#validate} with
+    # the default output format) as soon as its element is processed.
+    #
+    # The schema is analyzed first: keywords whose result needs the complete
+    # array value raise {JSONSchemer::StreamingUnsupportedError}. `uniqueItems`
+    # needs one retained value per item, so it is only evaluated when the
+    # caller supplies an explicit, caller-bounded cache (a `Set`-like object
+    # responding to `add?`).
+    def validate_stream(
+      source,
+      chunk_size: 4096,
+      unique_items_cache: nil,
+      access_mode: @configuration.access_mode,
+      &block
+    )
+      if insert_property_defaults
+        raise(
+          ArgumentError,
+          'streaming validation does not support `insert_property_defaults`'
+        )
+      end
+      if before_property_validation.any? || after_property_validation.any?
+        raise(
+          ArgumentError,
+          'streaming validation does not support property validation hooks'
+        )
+      end
+      StreamingValidator.new(
+        self,
+        source,
+        :chunk_size => chunk_size,
+        :unique_items_cache => unique_items_cache,
+        :access_mode => access_mode
+      ).each(&block)
+    end
+
+    # Returns true when the schema can be evaluated against a streamed array
+    # in bounded memory.
+    def streamable?
+      StreamingValidator.streamable?(self)
+    end
+
     def validate(instance, output_format: @configuration.output_format, resolve_enumerators: @configuration.resolve_enumerators, access_mode: @configuration.access_mode)
       instance_location = Location.root
       context = Context.new(instance, [], nil, (!insert_property_defaults && output_format == 'flag'), access_mode)
