@@ -62,6 +62,7 @@ require 'json_schemer/openapi'
 require 'json_schemer/configuration'
 require 'json_schemer/resources'
 require 'json_schemer/schema'
+require 'json_schemer/schema_migrator'
 
 module JSONSchemer
   class UnsupportedOpenAPIVersion < StandardError; end
@@ -131,6 +132,13 @@ module JSONSchemer
       schema = resolve(schema, options)
       meta_schema(schema, options).validate(schema, **options.slice(:output_format, :resolve_enumerators, :access_mode))
     end
+
+    def migrate_to_202012(schema, **options)
+      schema = resolve(schema, options)
+      SchemaMigrator.new.migrate(schema, **options)
+    end
+    alias migrate_to_draft202012 migrate_to_202012
+    alias migrate_schema migrate_to_202012
 
     def draft202012
       @draft202012 ||= Schema.new(

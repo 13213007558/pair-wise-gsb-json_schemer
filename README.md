@@ -95,6 +95,15 @@ JSONSchemer.validate_schema({ '$id' => '#invalid' }).to_a
 #      "type"=>"pattern",
 #      "error"=>"string at `/$id` does not match pattern: ^[^#]*#?$"}]
 
+# migrating Draft 4/6/7 schemas to Draft 2020-12
+
+draft4_schema = { '$schema' => 'http://json-schema.org/draft-04/schema#' }
+migration = JSONSchemer.migrate_to_202012(draft4_schema)
+migration.schema       # Draft 2020-12 schema (unknown data and annotations are preserved)
+migration.changes      # deterministic transformations with JSON Pointer locations
+migration.diagnostics  # rules/reference environments that cannot be migrated equivalently
+migration.equivalent?  # false when an error-level diagnostic was emitted
+
 # subschemas
 
 schema = {
