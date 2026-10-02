@@ -62,6 +62,7 @@ require 'json_schemer/openapi'
 require 'json_schemer/configuration'
 require 'json_schemer/resources'
 require 'json_schemer/schema'
+require 'json_schemer/streaming'
 
 module JSONSchemer
   class UnsupportedOpenAPIVersion < StandardError; end

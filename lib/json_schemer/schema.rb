@@ -117,6 +117,13 @@ module JSONSchemer
       output
     end
 
+    # Lazily yields classic-format validation errors for a JSON document
+    # read incrementally from io, without loading the whole document into
+    # memory. See JSONSchemer::Streaming.validate_each for details.
+    def validate_each(io, **options, &block)
+      Streaming.validate_each(value, io, **options, &block)
+    end
+
     def valid_schema?(**options)
       meta_schema.valid?(value, **options)
     end

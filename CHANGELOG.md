@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Features
+
+- Streaming validation to lazily validate large JSON documents read from an IO in bounded chunks, without loading the whole document into memory: `JSONSchemer::Streaming.validate_each(schema, io)` / `JSONSchemer::Schema#validate_each(io)`
+
 ## [2.5.0] - 2025-12-08
 
 ### Bug Fixes

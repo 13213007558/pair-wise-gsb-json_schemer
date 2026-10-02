@@ -144,6 +144,47 @@ schemer.bundle
 #       "http://example.com/schema/two"=>{"minimum"=>11, "$id"=>"http://example.com/schema/two", "$schema"=>"https://json-schema.org/draft/2020-12/schema"}}}
 ```
 
+## Streaming Validation
+
+Validating a JSON array with hundreds of thousands of items via `JSON.parse` + `validate` loads the whole document into memory. Streaming validation reads the document from an IO in bounded chunks and yields the same classic errors (identical `data_pointer`/`schema_pointer` paths) one at a time, without retaining completed array items:
+
+```ruby
+schema = {
+  'type' => 'array',
+  'items' => {
+    'type' => 'object',
+    'properties' => {
+      'name' => { 'type' => 'string', 'minLength' => 2 },
+      'age' => { 'type' => 'integer', 'minimum' => 0 }
+    },
+    'required' => ['name']
+  }
+}
+
+File.open('huge.json') do |io|
+  JSONSchemer::Streaming.validate_each(schema, io).each do |error|
+    puts error.fetch('error')
+  end
+end
+# or: JSONSchemer.schema(schema).validate_each(io)
+```
+
+The schema is analyzed up front (`JSONSchemer::Streaming.analyze`) to prove it can be validated with bounded memory. Supported incrementally: `type`, `enum`/`const` (scalar values), numeric constraints (`minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`), string constraints (`minLength`, `maxLength`, `pattern`), `properties`, `patternProperties`, `additionalProperties`, `propertyNames`, `required`, `dependentRequired`, `prefixItems`/`items`, and size limits (`minItems`/`maxItems`/`minProperties`/`maxProperties`).
+
+Keywords that need the whole value at once (`uniqueItems`, `contains`, `if`/`then`/`else`, `allOf`/`anyOf`/`oneOf`/`not`, `unevaluatedItems`/`unevaluatedProperties`, `$ref`, ...) are rejected with `JSONSchemer::Streaming::UnsupportedKeywordError` — unless they only appear inside item subschemas and you explicitly opt into a bounded per-item buffer:
+
+```ruby
+JSONSchemer::Streaming.validate_each(schema, io, :buffer_items => true, :max_item_bytes => 1 << 20)
+```
+
+Each affected item is then buffered (bounded by `max_item_bytes`, overflowing raises `JSONSchemer::Streaming::ItemTooLargeError`) and validated with the regular in-memory validator. Whole-document rules at the schema root are always rejected.
+
+Notes:
+
+- `chunk_size:` controls the read buffer (default 16KB); multi-byte UTF-8 characters and escape sequences split across chunks are handled, and malformed JSON (including truncated input or trailing data) raises `JSONSchemer::Streaming::ParseError` while enumerating.
+- For container-level errors (`required`, `dependentRequired`, `min/maxProperties`, `min/maxItems`) the `data` entry is `nil`, because the surrounding container is not kept in memory.
+- Errors are emitted in document order; the in-memory validator emits them in schema keyword order, so the same set of errors may arrive in a different order within an object.
+
 ## Options
 
 ```ruby
