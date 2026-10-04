@@ -12,6 +12,7 @@
 ### Features
 
 - More interpolation variables for custom error messages: https://github.com/davishmcclurg/json_schemer/pull/211
+- Add `Schema#partial_validate` and `JSONSchemer.partial_validate` for three-valued validation
 
 [2.5.0]: https://github.com/davishmcclurg/json_schemer/releases/tag/v2.5.0
 

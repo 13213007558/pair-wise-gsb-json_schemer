@@ -53,6 +53,22 @@ schemer.validate({ 'abc' => 10 }).to_a
 #      "type"=>"minimum",
 #      "error"=>"number at `/abc` is less than: 11"}]
 
+# partial validation
+
+unknown = JSONSchemer::PartialValidation::UNKNOWN
+schemer.partial_validate({ 'abc' => unknown })
+# => {"valid"=>nil,
+#     "status"=>"pending",
+#     "unresolved"=>[{"keyword"=>"type",
+#                     "schemaLocation"=>"/properties/abc/type",
+#                     "instanceLocation"=>"/abc",
+#                     "reason"=>"unknown value"}]}
+
+# `status` is "valid", "invalid", or "pending". A pending result has `valid` => nil.
+# Missing object keys and `nil` are concrete values; only the explicit UNKNOWN marker is partial.
+# Replacing every marker with a concrete value makes partial validation converge with `valid?`.
+# Unsupported assertions are conservative and listed in `unresolved` while any applicable partial value remains.
+
 # default property values
 
 data = {}

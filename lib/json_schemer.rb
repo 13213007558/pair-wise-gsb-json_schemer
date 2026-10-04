@@ -25,6 +25,7 @@ require 'json_schemer/errors'
 require 'json_schemer/cached_resolver'
 require 'json_schemer/ecma_regexp'
 require 'json_schemer/location'
+require 'json_schemer/partial_validation'
 require 'json_schemer/result'
 require 'json_schemer/output'
 require 'json_schemer/keyword'
@@ -130,6 +131,10 @@ module JSONSchemer
     def validate_schema(schema, **options)
       schema = resolve(schema, options)
       meta_schema(schema, options).validate(schema, **options.slice(:output_format, :resolve_enumerators, :access_mode))
+    end
+
+    def partial_validate(schema, instance, **options)
+      schema(schema, **options).partial_validate(instance)
     end
 
     def draft202012

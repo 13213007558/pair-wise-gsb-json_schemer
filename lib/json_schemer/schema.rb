@@ -117,6 +117,10 @@ module JSONSchemer
       output
     end
 
+    def partial_validate(instance, access_mode: @configuration.access_mode)
+      PartialValidation.validate(self, instance, :access_mode => access_mode)
+    end
+
     def valid_schema?(**options)
       meta_schema.valid?(value, **options)
     end
