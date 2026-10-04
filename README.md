@@ -144,6 +144,89 @@ schemer.bundle
 #       "http://example.com/schema/two"=>{"minimum"=>11, "$id"=>"http://example.com/schema/two", "$schema"=>"https://json-schema.org/draft/2020-12/schema"}}}
 ```
 
+
+## Partial Validation
+
+Partial validation validates instances that contain *unknown* values, e.g. a
+form that has only been filled in halfway. Unknown values are marked with the
+explicit `JSONSchemer::Partial::UNKNOWN` placeholder, which is distinct from
+both a missing object key and `nil` (JSON null). The result is three-valued:
+
+- `:valid` -- definitely valid: *every* replacement of the unknown values is valid
+- `:invalid` -- definitely invalid: *every* replacement of the unknown values is invalid
+- `:unknown` -- pending: the outcome depends on the unknown values
+
+```ruby
+schemer = JSONSchemer.schema({
+  'type' => 'object',
+  'required' => %w[name age],
+  'properties' => {
+    'name' => { 'type' => 'string' },
+    'age' => { 'type' => 'integer' }
+  }
+})
+
+unknown = JSONSchemer::Partial::UNKNOWN
+
+result = schemer.partial_validate({ 'name' => unknown, 'age' => 30 })
+result.status
+# => :unknown
+result.unresolved
+# => [{"keyword"=>"type",
+#      "instance_location"=>"/name",
+#      "schema_location"=>"/properties/name/type",
+#      "reason"=>"value is unknown"}]
+
+schemer.partial_validate({ 'name' => 1, 'age' => unknown }).status
+# => :invalid (definitely invalid, no matter what the unknown value becomes)
+
+schemer.partial_validate({ 'name' => 'alice', 'age' => 30 }).status
+# => :valid
+
+# three-valued convenience wrapper (true/false/nil)
+schemer.partial_valid?({ 'name' => unknown, 'age' => 30 })
+# => nil
+
+# a custom placeholder can be used instead of UNKNOWN
+schemer.partial_validate({ 'name' => :todo, 'age' => 30 }, :unknown => :todo)
+```
+
+Replacing all unknown values with concrete values converges to the same
+conclusion as the regular validator: `partial_validate` on a fully-known
+instance always agrees with `valid?`.
+
+Pending results are conservative, but definite results (`:valid`/`:invalid`)
+are reliable. Constraints that cannot be decided yet are listed in
+`result.unresolved` with their keyword, instance location, schema location,
+and reason.
+
+### Supported keywords
+
+`type`, `enum`, `const`, `required`, `properties`, `items`,
+`prefixItems`, `allOf`, `anyOf`, `oneOf`, `not`, and `$ref` are
+evaluated with three-valued logic. Pure annotation keywords (`title`,
+`description`, `default`, `$comment`, etc.) and unknown keywords are
+ignored, matching the regular validator.
+
+### Unsupported keywords
+
+Any other assertion keyword (e.g. `minimum`, `pattern`, `format`,
+`additionalProperties`, `contains`, `if`/`then`/`else`,
+`$dynamicRef`, custom keywords) is handled as follows:
+
+- If the (sub)instance it applies to contains no unknown values, the whole
+  subschema is evaluated exactly by the regular validator.
+- Otherwise the keyword is reported as an unresolved constraint and the result
+  becomes pending (`:unknown`), unless it is already definitely invalid.
+
+Subschemas using `unevaluatedItems`, `unevaluatedProperties`, `$dynamicRef`,
+or `$recursiveRef`, and configurations using custom keywords, property
+validation hooks, or `insert_property_defaults`, are never delegated to the
+regular validator for concrete subtrees; their supported keywords are still
+evaluated with three-valued logic and everything else becomes an unresolved
+constraint. Recursive `$ref` cycles that cannot be unfolded for unknown
+values are also reported as unresolved constraints.
+
 ## Options
 
 ```ruby
